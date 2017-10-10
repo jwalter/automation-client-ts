@@ -35,9 +35,51 @@ jobs:
 
       - run: uname -a
       - run: git --version
+      - run: sudo echo "deb http://ftp.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list && sudo apt-get update && sudo apt-get install git
+      - run: git --version
+      - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+
+      - run: env
+
+      # run tests!
+      - run: npm test
+
+  samples:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:8.4
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      # - image: circleci/mongo:3.4.4
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - run: uname -a
+      - run: git --version
       - run: sudo apt-get update && sudo apt-get --only-upgrade git
       - run: git --version
       - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+
+      - run: env
 
       # run tests!
       - run: npm test
