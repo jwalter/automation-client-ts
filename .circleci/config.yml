@@ -33,12 +33,8 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: uname -a
-      - run: git --version
-      - run: sudo echo "deb http://ftp.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list && sudo apt-get update && sudo apt-get install git
-      - run: git --version
+      - run: sudo bash .circleci/upgrade-git.bash
       - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
-
       - run: env
 
       # run tests!
