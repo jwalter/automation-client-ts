@@ -103,7 +103,7 @@ jobs:
 
       - run:
           name: configure ssh
-          command: umask 007 && mkdir ~/.ssh && echo -e 'UserKnownHostsFile /dev/null\nStrictHostKeyChecking no' >> ~/.ssh/config
+          command: umask 007 && mkdir -p ~/.ssh && echo -e 'UserKnownHostsFile /dev/null\nStrictHostKeyChecking no' >> ~/.ssh/config
       - run:
           name: clone samples
           command: git clone git@github.com:atomist/automation-client-samples-ts.git .
