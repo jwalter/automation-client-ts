@@ -18,6 +18,7 @@ jobs:
 
     steps:
       - checkout
+      - run: git remote --verbose
 
       # Download and cache dependencies
       - restore_cache:
@@ -91,7 +92,12 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - run: git clone git@github.com:atomist/automation-client-samples-ts.git .
+      - run:
+          name: configure ssh
+          command: echo -e 'UserKnownHostsFile /dev/null\nStrictHostKeyChecking no' >> ~/.ssh/config
+      - run:
+          name: clone samples
+          command: git clone git@github.com:atomist/automation-client-samples-ts.git .
 
       # Download and cache dependencies
       - restore_cache:
