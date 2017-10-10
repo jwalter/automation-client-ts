@@ -24,7 +24,7 @@ fi
 if ! apt-get update; then
     err "failed to run apt-get update"
 fi
-if ! apt-get install git; then
+if ! apt-get -t jessie-backports install git; then
     err "failed to upgrade git"
 fi
 if ! git --version; then
