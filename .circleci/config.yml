@@ -33,7 +33,11 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+      - run: uname -a
       - run: git --version
+      - run: sudo apt-get update && sudo apt-get --only-upgrade git
+      - run: git --version
+      - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+
       # run tests!
       - run: npm test
