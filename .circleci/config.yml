@@ -92,27 +92,7 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - run:
-          name: configure ssh
-          command: umask 007 && mkdir ~/.ssh && echo -e 'UserKnownHostsFile /dev/null\nStrictHostKeyChecking no' >> ~/.ssh/config
-      - run:
-          name: clone samples
-          command: git clone git@github.com:atomist/automation-client-samples-ts.git .
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-samples-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-samples-dependencies-
-
-      - run: env
-      - run: npm install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-samples-dependencies-{{ checksum "package.json" }}
+      - checkout
 
       - run:
           name: upgrade git
@@ -121,15 +101,44 @@ jobs:
           name: configure git
           command: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
 
+      - run:
+          name: configure ssh
+          command: umask 007 && mkdir ~/.ssh && echo -e 'UserKnownHostsFile /dev/null\nStrictHostKeyChecking no' >> ~/.ssh/config
+      - run:
+          name: clone samples
+          command: git clone git@github.com:atomist/automation-client-samples-ts.git .
+          working_directory: ~/samples
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-samples-dependencies-{{ checksum "~/samples/package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-samples-dependencies-
+
+      - run: env
+      - run:
+          command: npm install
+          working_directory: ~/samples
+
+      - save_cache:
+          paths:
+            - ~/samples/node_modules
+          key: v1-samples-dependencies-{{ checksum "~/samples/package.json" }}
+
       - restore_cache:
           keys:
           - v1-package-{{ .BuildNum }}
       - run:
           name: install client
           command: npm install ~/package
+          working_directory: ~/samples
 
       # run tests!
-      - run: npm test
+      - run:
+          name: test samples
+          command: npm test
+          working_directory: ~/samples
 
 workflows:
   version: 2
