@@ -34,6 +34,6 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
-
+      - run: git --version
       # run tests!
       - run: npm test
