@@ -26,6 +26,7 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
+      - run: env
       - run: npm install
 
       - save_cache:
@@ -33,12 +34,49 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: sudo bash .circleci/upgrade-git.bash
-      - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
-      - run: env
+      - run:
+          name: upgrade git
+          command: sudo bash .circleci/upgrade-git.bash
+      - run:
+          name: configure git
+          command: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+      - run: npm run lint
+      - run: npm run compile
 
       # run tests!
       - run: npm test
+
+      - run:
+          name: package
+          command: mkdir ~/package && cp -r build/src/* [C-R]* package.json ~/package
+      - save_cache:
+          paths:
+            - ~/package
+          key: v1-package-{{ .BuildNum }}
+
+  env0:
+    docker:
+      - image: circleci/node:8.4
+    steps:
+      - run: env
+
+  env1:
+    docker:
+      - image: circleci/node:8.4
+    steps:
+      - run: env
+
+  env2:
+    docker:
+      - image: circleci/node:8.4
+    steps:
+      - run: env
+
+  env3:
+    docker:
+      - image: circleci/node:8.4
+    steps:
+      - run: env
 
   samples:
     docker:
@@ -53,29 +91,60 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - checkout
+      - run: git clone git@github.com:atomist/automation-client-samples-ts.git .
 
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-samples-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - v1-samples-dependencies-
 
+      - run: env
       - run: npm install
 
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1-samples-dependencies-{{ checksum "package.json" }}
 
-      - run: uname -a
-      - run: git --version
-      - run: sudo apt-get update && sudo apt-get --only-upgrade git
-      - run: git --version
-      - run: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
+      - run:
+          name: upgrade git
+          command: sudo bash .circleci/upgrade-git.bash
+      - run:
+          name: configure git
+          command: git config --global user.email "circleci@atomist.com" && git config --global user.name "Atomist Circle CI"
 
-      - run: env
+      - restore_cache:
+          keys:
+          - v1-package-{{ .BuildNum }}
+      - run:
+          name: install client
+          command: npm install ~/package
 
       # run tests!
       - run: npm test
+
+workflows:
+  version: 2
+  downstream:
+    jobs:
+      - build
+      - env0:
+          requires:
+            - build
+      - env1:
+          requires:
+            - build
+      - env2:
+          requires:
+            - build
+      - env3:
+          requires:
+            - build
+      - samples:
+          requires:
+            - env0
+            - env1
+            - env2
+            - env3
